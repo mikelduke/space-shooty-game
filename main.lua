@@ -37,14 +37,17 @@ function love.draw()
                                 "x" .. tostring(love.graphics.getHeight()) ..
                                 " scale " .. tostring(sx) .. "x" .. tostring(sy),
                             10, 30)
+
         drawPhysicsShapes()
     end
 
     love.graphics.setColor(1, 1, 1)
     for i, o in ipairs(objects) do
-        love.graphics.draw(o.img, o.body:getX(), o.body:getY(),
-                           o.body:getAngle(), 1, 1, o.img:getWidth() / 2,
-                           o.img:getHeight() / 2)
+        if not o.hidden then
+            love.graphics.draw(o.img, o.body:getX(), o.body:getY(),
+                               o.body:getAngle(), 1, 1, o.img:getWidth() / 2,
+                               o.img:getHeight() / 2)
+        end
     end
 end
 
@@ -106,24 +109,40 @@ function createShip()
         img = love.graphics.newImage('assets/Aircraft_03.png'),
         touchid = nil
     }
-    ship.body = love.physics.newBody(world, shipSize * 1.5,
-                                       screenHeight / 2, "dynamic")
+    ship.body = love.physics.newBody(world, shipSize * 1.5, screenHeight / 2,
+                                     "dynamic")
     ship.shape = love.physics.newCircleShape(shipSize / 2)
     ship.fixture = love.physics.newFixture(ship.body, ship.shape)
     ship.joint = love.physics.newMouseJoint(ship.body, shipSize * 1.5,
-                                              screenHeight / 2)
+                                            screenHeight / 2)
 
     table.insert(objects, ship)
 
-    target = {img = getCircle(shipSize / 2, {r = 1, g = 1, b = 1}), touchid = nil}
-    target.body = love.physics.newBody(world, shipSize * 1.5,
-                                       screenHeight / 2, "dynamic")
+    target = { -- TODO Change to crosshair
+        img = scaleCrosshair(),
+        touchid = nil,
+        hidden = false
+    }
+    target.body = love.physics.newBody(world, shipSize * 10, screenHeight / 2,
+                                       "dynamic")
     -- target.shape = love.physics.newCircleShape(shipSize / 2)
     -- target.fixture = love.physics.newFixture(target.body, target.shape)
-    target.joint = love.physics.newMouseJoint(target.body, shipSize * 1.5,
+    target.joint = love.physics.newMouseJoint(target.body, shipSize * 10,
                                               screenHeight / 2)
 
-    -- table.insert(objects, target)
+    table.insert(objects, target)
+end
+
+function scaleCrosshair()
+    local img = love.graphics.newImage('assets/Crosshair 1.png')
+
+    local c = love.graphics.newCanvas(100, 100)
+    love.graphics.setCanvas(c)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(img, 0, 0, 0, .1 * sx, .1 * sy)
+    love.graphics.setCanvas()
+
+    return c
 end
 
 function calcAngle()
@@ -136,12 +155,13 @@ function drawPhysicsShapes()
     for _, body in pairs(world:getBodies()) do
         for _, fixture in pairs(body:getFixtures()) do
             local shape = fixture:getShape()
-     
+
             if shape:typeOf("CircleShape") then
                 local cx, cy = body:getWorldPoints(shape:getPoint())
                 love.graphics.circle("fill", cx, cy, shape:getRadius())
             elseif shape:typeOf("PolygonShape") then
-                love.graphics.polygon("fill", body:getWorldPoints(shape:getPoints()))
+                love.graphics.polygon("fill",
+                                      body:getWorldPoints(shape:getPoints()))
             else
                 love.graphics.line(body:getWorldPoints(shape:getPoints()))
             end
