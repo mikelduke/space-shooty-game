@@ -1,0 +1,5 @@
+bin/dist
+bin/temp
+dist/
+temp/
+*.keystore
