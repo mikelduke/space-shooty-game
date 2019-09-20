@@ -2,24 +2,38 @@ debug = false
 screenWidth = love.graphics.getWidth()
 screenHeight = love.graphics.getHeight()
 
-shipSize = 100
-
 world = nil
 
 objects = {}
+
+player = {
+    size = 100,
+    ratio = 2.2,
+    touchid = nil,
+    state = "alive",
+    score = 0,
+    canShoot = true,
+    canShootTimerMax = 0.2,
+    canShootTimer = canShootTimerMax
+}
+
+images = {
+    player = love.graphics.newImage('assets/ship.png'),
+    target = love.graphics.newImage('assets/Crosshair 1.png')
+}
 
 function love.load(arg)
     setScale()
 
     world = love.physics.newWorld(0, 0)
 
-    createShip()
+    createPlayer()
 end
 
 function love.update(dt)
     world:update(dt)
 
-    ship.body:setAngle(calcAngle())
+    player.body:setAngle(calcAngle())
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -52,9 +66,9 @@ function love.draw()
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
-    if (ship.touchid == nil) then
-        ship.touchid = id
-        ship.joint:setTarget(x, y)
+    if (player.touchid == nil) then
+        player.touchid = id
+        player.joint:setTarget(x, y)
     else
         target.touchid = id
         target.joint:setTarget(x, y)
@@ -62,16 +76,16 @@ function love.touchpressed(id, x, y, dx, dy, pressure)
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
-    if (ship.touchid == id) then
-        ship.joint:setTarget(x, y)
+    if (player.touchid == id) then
+        player.joint:setTarget(x, y)
     elseif (target.touchid == id) then
         target.joint:setTarget(x, y)
     end
 end
 
 function love.touchreleased(id, x, y, dx, dy, pressure)
-    if (ship.touchid == id) then
-        ship.touchid = nil
+    if (player.touchid == id) then
+        player.touchid = nil
     elseif (target.touchid == id) then
         target.touchid = nil
     end
@@ -101,39 +115,37 @@ function setScale()
     local width, height = love.graphics.getDimensions()
     sx = width / 1920
     sy = height / 1080
-    shipSize = shipSize * sx
+    player.size = player.size * sx
 end
 
-function createShip()
-    ship = {
-        img = scale(love.graphics.newImage('assets/ship.png'), 2.2 * sx,
-                    2.2 * sy),
-        touchid = nil,
-        ratioX = 2.2 * sx,
-        ratioY = 2.2 * sy
-    }
-    ship.body = love.physics.newBody(world, shipSize * 1.5, screenHeight / 2,
-                                     "dynamic")
-    ship.shape = love.physics.newPolygonShape(0, -15 * ship.ratioY,
-                                              23 * ship.ratioX, 15 * ship.ratioY,
-                                              -23 * ship.ratioX, 15 * ship.ratioY)
-    ship.fixture = love.physics.newFixture(ship.body, ship.shape)
-    ship.joint = love.physics.newMouseJoint(ship.body, shipSize * 1.5,
-                                            screenHeight / 2)
+function createPlayer()
+    player.img = scale(images.player, player.ratio * sx, player.ratio * sy)
+    player.ratioX = player.ratio * sx
+    player.ratioY = player.ratio * sy
 
-    table.insert(objects, ship)
+    player.body = love.physics.newBody(world, player.size * 1.5,
+                                       screenHeight / 2, "dynamic")
+    player.shape = love.physics.newPolygonShape(0, -15 * player.ratioY,
+                                                23 * player.ratioX,
+                                                15 * player.ratioY,
+                                                -23 * player.ratioX,
+                                                15 * player.ratioY)
+    player.fixture = love.physics.newFixture(player.body, player.shape)
+    player.joint = love.physics.newMouseJoint(player.body, player.size * 1.5,
+                                              screenHeight / 2)
 
-    target = { -- TODO Change to crosshair
-        img = scale(love.graphics.newImage('assets/Crosshair 1.png'), .1 * sx,
-                    .1 * sy),
+    table.insert(objects, player)
+
+    target = {
+        img = scale(images.target, .1 * sx, .1 * sy),
         touchid = nil,
         hidden = false
     }
-    target.body = love.physics.newBody(world, shipSize * 10, screenHeight / 2,
+    target.body = love.physics.newBody(world, player.size * 10, screenHeight / 2,
                                        "dynamic")
-    -- target.shape = love.physics.newCircleShape(shipSize / 2)
+    -- target.shape = love.physics.newCircleShape(player.size / 2)
     -- target.fixture = love.physics.newFixture(target.body, target.shape)
-    target.joint = love.physics.newMouseJoint(target.body, shipSize * 10,
+    target.joint = love.physics.newMouseJoint(target.body, player.size * 10,
                                               screenHeight / 2)
 
     table.insert(objects, target)
@@ -151,8 +163,8 @@ function scale(img, ratioX, ratioY)
 end
 
 function calcAngle()
-    return -math.atan2(ship.body:getX() - target.body:getX(),
-                       ship.body:getY() - target.body:getY())
+    return -math.atan2(player.body:getX() - target.body:getX(),
+                       player.body:getY() - target.body:getY())
 end
 
 -- https://love2d.org/wiki/Tutorial:PhysicsDrawing
