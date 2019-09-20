@@ -106,7 +106,7 @@ end
 
 function createShip()
     ship = {
-        img = love.graphics.newImage('assets/Aircraft_03.png'),
+        img = scale(love.graphics.newImage('assets/ship.png'), 2.2),
         touchid = nil
     }
     ship.body = love.physics.newBody(world, shipSize * 1.5, screenHeight / 2,
@@ -119,7 +119,7 @@ function createShip()
     table.insert(objects, ship)
 
     target = { -- TODO Change to crosshair
-        img = scaleCrosshair(),
+        img = scale(love.graphics.newImage('assets/Crosshair 1.png'), .1),
         touchid = nil,
         hidden = false
     }
@@ -133,13 +133,11 @@ function createShip()
     table.insert(objects, target)
 end
 
-function scaleCrosshair()
-    local img = love.graphics.newImage('assets/Crosshair 1.png')
-
+function scale(img, ratio)
     local c = love.graphics.newCanvas(100, 100)
     love.graphics.setCanvas(c)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(img, 0, 0, 0, .1 * sx, .1 * sy)
+    love.graphics.draw(img, 0, 0, 0, ratio * sx, ratio * sy)
     love.graphics.setCanvas()
 
     return c
