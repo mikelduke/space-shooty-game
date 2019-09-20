@@ -14,13 +14,19 @@ player = {
     score = 0,
     canShoot = true,
     canShootTimerMax = 0.2,
-    canShootTimer = canShootTimerMax
+    canShootTimer = 0.2,
+    isShooting = false,
+    bulletSpeed = 4000
 }
 
 images = {
     player = love.graphics.newImage('assets/ship.png'),
     target = love.graphics.newImage('assets/Crosshair 1.png')
 }
+
+-- Bullets
+bulletImg = love.graphics.newImage('assets/bullet_2_blue.png')
+bullets = {} -- array of current bullets being drawn and updated
 
 function love.load(arg)
     setScale()
@@ -34,6 +40,26 @@ function love.update(dt)
     world:update(dt)
 
     player.body:setAngle(calcAngle())
+
+    -- Time out how far apart our shots can be.
+    player.canShootTimer = player.canShootTimer - (1 * dt)
+    if player.canShootTimer < 0 then player.canShoot = true end
+
+    if player.isShooting and player.canShoot then
+        createBullet()
+        player.canShoot = false
+        player.canShootTimer = player.canShootTimerMax
+    end
+
+    -- cleanup bullets
+    for i, bullet in ipairs(bullets) do
+        local x = bullet.body:getX()
+        local y = bullet.body:getY()
+        if y < 0 or y > screenHeight or x < 0 or x > screenWidth then
+            table.remove(bullets, i)
+            table.remove(objects, tablefind(objects, bullet))
+        end
+    end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -51,7 +77,17 @@ function love.draw()
                                 "x" .. tostring(love.graphics.getHeight()) ..
                                 " scale " .. tostring(sx) .. "x" .. tostring(sy),
                             10, 30)
+        love.graphics.print("Shooting: " .. tostring(player.isShooting) ..
+                                "  Bullets: " .. tostring(#bullets), 10, 40)
+        love.graphics.print("Angle: " .. tostring(player.body:getAngle()), 10,
+                            50)
 
+        -- bullet spawn
+        love.graphics.circle("fill", player.body:getX() +
+                                 (math.sin(player.body:getAngle()) * 50 * sx),
+                             player.body:getY() +
+                                 (math.cos(player.body:getAngle()) * -50 * sy),
+                             10 * sx)
         drawPhysicsShapes()
     end
 
@@ -63,6 +99,10 @@ function love.draw()
                                o.img:getHeight() / 2)
         end
     end
+
+    -- for i, bullet in ipairs(bullets) do
+    --     love.graphics.draw(bullet.img, bullet.x, bullet.y)
+    -- end
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
@@ -72,6 +112,7 @@ function love.touchpressed(id, x, y, dx, dy, pressure)
     else
         target.touchid = id
         target.joint:setTarget(x, y)
+        player.isShooting = true
     end
 end
 
@@ -88,6 +129,7 @@ function love.touchreleased(id, x, y, dx, dy, pressure)
         player.touchid = nil
     elseif (target.touchid == id) then
         target.touchid = nil
+        player.isShooting = false
     end
 end
 
@@ -141,8 +183,8 @@ function createPlayer()
         touchid = nil,
         hidden = false
     }
-    target.body = love.physics.newBody(world, player.size * 10, screenHeight / 2,
-                                       "dynamic")
+    target.body = love.physics.newBody(world, player.size * 10,
+                                       screenHeight / 2, "dynamic")
     -- target.shape = love.physics.newCircleShape(player.size / 2)
     -- target.fixture = love.physics.newFixture(target.body, target.shape)
     target.joint = love.physics.newMouseJoint(target.body, player.size * 10,
@@ -184,4 +226,38 @@ function drawPhysicsShapes()
             end
         end
     end
+end
+
+function createBullet()
+    local bullet = {
+        x = player.body:getX() + (player.img:getWidth() / 2),
+        y = player.body:getY(),
+        img = scale(bulletImg, sx, sy)
+    }
+
+    bullet.body = love.physics.newBody(world, player.body:getX() +
+                                           (math.sin(player.body:getAngle()) *
+                                               50 * sx), player.body:getY() +
+                                           (math.cos(player.body:getAngle()) *
+                                               -50 * sy), "kinematic")
+
+    -- TODO Better Shape
+    bullet.shape = love.physics.newPolygonShape(0, -15 * player.ratioY,
+                                                23 * player.ratioX,
+                                                15 * player.ratioY,
+                                                -23 * player.ratioX,
+                                                15 * player.ratioY)
+    bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
+
+    bullet.body:setBullet(true)
+    bullet.body:setAngle(player.body:getAngle())
+    bullet.body:setLinearVelocity(math.sin(player.body:getAngle()) * player.bulletSpeed,
+                                  math.cos(player.body:getAngle()) * player.bulletSpeed * -1)
+
+    table.insert(bullets, bullet)
+    table.insert(objects, bullet)
+end
+
+function tablefind(tab, el)
+    for index, value in pairs(tab) do if value == el then return index end end
 end
