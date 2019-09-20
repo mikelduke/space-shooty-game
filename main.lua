@@ -241,18 +241,15 @@ function createBullet()
                                            (math.cos(player.body:getAngle()) *
                                                -50 * sy), "kinematic")
 
-    -- TODO Better Shape
-    bullet.shape = love.physics.newPolygonShape(0, -15 * player.ratioY,
-                                                23 * player.ratioX,
-                                                15 * player.ratioY,
-                                                -23 * player.ratioX,
-                                                15 * player.ratioY)
+    bullet.shape = love.physics.newRectangleShape(bullet.img:getWidth(), bullet.img:getHeight())
     bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
 
     bullet.body:setBullet(true)
     bullet.body:setAngle(player.body:getAngle())
-    bullet.body:setLinearVelocity(math.sin(player.body:getAngle()) * player.bulletSpeed,
-                                  math.cos(player.body:getAngle()) * player.bulletSpeed * -1)
+    bullet.body:setLinearVelocity(math.sin(player.body:getAngle()) *
+                                      player.bulletSpeed, math.cos(
+                                      player.body:getAngle()) *
+                                      player.bulletSpeed * -1)
 
     table.insert(bullets, bullet)
     table.insert(objects, bullet)

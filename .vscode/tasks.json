@@ -20,6 +20,13 @@
             "type": "shell",
             "command": "bin/dist.sh && rm -rf temp",
             "problemMatcher":[],
+        },
+        {
+            "label":"format",
+            "type":"shell",
+            "command":"/home/mikel/.vscode/extensions/koihik.vscode-lua-format-1.2.2/bin/linux/lua-format main.lua",
+            "problemMatcher": [],
+            "isBackground": true
         }
     ]
 }
