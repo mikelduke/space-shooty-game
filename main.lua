@@ -106,12 +106,17 @@ end
 
 function createShip()
     ship = {
-        img = scale(love.graphics.newImage('assets/ship.png'), 2.2),
-        touchid = nil
+        img = scale(love.graphics.newImage('assets/ship.png'), 2.2 * sx,
+                    2.2 * sy),
+        touchid = nil,
+        ratioX = 2.2 * sx,
+        ratioY = 2.2 * sy
     }
     ship.body = love.physics.newBody(world, shipSize * 1.5, screenHeight / 2,
                                      "dynamic")
-    ship.shape = love.physics.newCircleShape(shipSize / 2)
+    ship.shape = love.physics.newPolygonShape(0, -15 * ship.ratioY,
+                                              23 * ship.ratioX, 15 * ship.ratioY,
+                                              -23 * ship.ratioX, 15 * ship.ratioY)
     ship.fixture = love.physics.newFixture(ship.body, ship.shape)
     ship.joint = love.physics.newMouseJoint(ship.body, shipSize * 1.5,
                                             screenHeight / 2)
@@ -119,7 +124,8 @@ function createShip()
     table.insert(objects, ship)
 
     target = { -- TODO Change to crosshair
-        img = scale(love.graphics.newImage('assets/Crosshair 1.png'), .1),
+        img = scale(love.graphics.newImage('assets/Crosshair 1.png'), .1 * sx,
+                    .1 * sy),
         touchid = nil,
         hidden = false
     }
@@ -133,11 +139,12 @@ function createShip()
     table.insert(objects, target)
 end
 
-function scale(img, ratio)
-    local c = love.graphics.newCanvas(100, 100)
+function scale(img, ratioX, ratioY)
+    local c = love.graphics.newCanvas(img:getWidth() * ratioX,
+                                      img:getHeight() * ratioY)
     love.graphics.setCanvas(c)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(img, 0, 0, 0, ratio * sx, ratio * sy)
+    love.graphics.draw(img, 0, 0, 0, ratioX, ratioY)
     love.graphics.setCanvas()
 
     return c
