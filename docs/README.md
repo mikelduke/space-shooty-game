@@ -1,4 +1,10 @@
-# Spaceships go boom
+# Space shooty game
+
+Very WIP love2d spacey shooty game for multitouch screen
+
+Motion is kind of like a twin stick shooter but with two fingers
+
+![space shooty game](space-shooty-bullets.gif?raw=true "space shooty game")
 
 ----
 
