@@ -21,12 +21,17 @@ player = {
 
 images = {
     player = love.graphics.newImage('assets/ship.png'),
-    target = love.graphics.newImage('assets/Crosshair 1.png')
+    target = love.graphics.newImage('assets/Crosshair 1.png'),
+    enemy = love.graphics.newImage('assets/Aircraft_01.png')
 }
 
 -- Bullets
 bulletImg = love.graphics.newImage('assets/bullet_2_blue.png')
 bullets = {} -- array of current bullets being drawn and updated
+
+enemies = {}
+enemyTimerMax = 4
+enemyTimer = enemyTimerMax
 
 function love.load(arg)
     setScale()
@@ -60,6 +65,22 @@ function love.update(dt)
             table.remove(objects, tablefind(objects, bullet))
         end
     end
+
+    enemyTimer = enemyTimer - dt
+    if enemyTimer < 0 then
+        createEnemy()
+        enemyTimer = enemyTimerMax
+    end
+
+    -- cleanup enemies
+    for i, enemy in ipairs(enemies) do
+        local x = enemy.body:getX()
+        local y = enemy.body:getY()
+        if y < 0 or y > screenHeight or x < 0 or x > screenWidth then
+            table.remove(enemies, i)
+            table.remove(objects, tablefind(objects, enemy))
+        end
+    end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -81,6 +102,7 @@ function love.draw()
                                 "  Bullets: " .. tostring(#bullets), 10, 40)
         love.graphics.print("Angle: " .. tostring(player.body:getAngle()), 10,
                             50)
+        love.graphics.print("Enemies: " .. tostring(#enemies), 10, 60)
 
         -- bullet spawn
         love.graphics.circle("fill", player.body:getX() +
@@ -241,7 +263,8 @@ function createBullet()
                                            (math.cos(player.body:getAngle()) *
                                                -50 * sy), "kinematic")
 
-    bullet.shape = love.physics.newRectangleShape(bullet.img:getWidth(), bullet.img:getHeight())
+    bullet.shape = love.physics.newRectangleShape(bullet.img:getWidth(),
+                                                  bullet.img:getHeight())
     bullet.fixture = love.physics.newFixture(bullet.body, bullet.shape)
 
     bullet.body:setBullet(true)
@@ -257,4 +280,32 @@ end
 
 function tablefind(tab, el)
     for index, value in pairs(tab) do if value == el then return index end end
+end
+
+function createEnemy()
+    local enemy = {
+        size = 100,
+        ratio = 1,
+        touchid = nil,
+        state = "alive",
+        canShoot = true,
+        canShootTimerMax = 0.2,
+        canShootTimer = 0.2,
+        isShooting = false,
+        bulletSpeed = 1000
+    }
+
+    enemy.img = scale(images.enemy, enemy.ratio * sx, enemy.ratio * sy)
+    enemy.ratioX = enemy.ratio * sx
+    enemy.ratioY = enemy.ratio * sy
+
+    local x = love.math.random(love.graphics.getWidth())
+    local y = love.math.random(love.graphics.getHeight())
+
+    enemy.body = love.physics.newBody(world, x, y, "dynamic")
+    enemy.shape = love.physics.newCircleShape(50)
+    enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
+
+    table.insert(objects, enemy)
+    table.insert(enemies, enemy)
 end
