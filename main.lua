@@ -34,6 +34,7 @@ enemyTimerMax = 4
 enemyTimer = enemyTimerMax
 
 function love.load(arg)
+    love.mouse.setVisible(false)
     setScale()
 
     world = love.physics.newWorld(0, 0)
