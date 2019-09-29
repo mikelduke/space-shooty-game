@@ -285,14 +285,15 @@ end
 function createEnemy()
     local enemy = {
         size = 100,
-        ratio = 1,
+        ratio = love.math.random(.5, 5),
         touchid = nil,
         state = "alive",
         canShoot = true,
         canShootTimerMax = 0.2,
         canShootTimer = 0.2,
         isShooting = false,
-        bulletSpeed = 1000
+        bulletSpeed = 1000,
+        movementType = 0
     }
 
     enemy.img = scale(images.enemy, enemy.ratio * sx, enemy.ratio * sy)
@@ -303,7 +304,7 @@ function createEnemy()
     local y = love.math.random(love.graphics.getHeight())
 
     enemy.body = love.physics.newBody(world, x, y, "dynamic")
-    enemy.shape = love.physics.newCircleShape(50)
+    enemy.shape = love.physics.newCircleShape(50  * enemy.ratio)
     enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
 
     table.insert(objects, enemy)
