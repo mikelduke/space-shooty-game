@@ -295,7 +295,7 @@ function createEnemy()
         canShootTimer = 0.2,
         isShooting = false,
         bulletSpeed = 1000,
-        movementType = 0
+        speed = love.math.random(50, 500)
     }
 
     enemy.img = scale(images.enemy, enemy.ratio * sx, enemy.ratio * sy)
@@ -308,6 +308,12 @@ function createEnemy()
     enemy.body = love.physics.newBody(world, x, y, "dynamic")
     enemy.shape = love.physics.newCircleShape(50  * enemy.ratio)
     enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
+
+    enemy.body:setAngle(calcAngle(enemy, player))
+    enemy.body:setLinearVelocity(math.sin(enemy.body:getAngle()) *
+                                enemy.speed, math.cos(
+                                enemy.body:getAngle()) *
+                                enemy.speed * -1)
 
     table.insert(objects, enemy)
     table.insert(enemies, enemy)
