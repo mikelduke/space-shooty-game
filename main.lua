@@ -44,7 +44,7 @@ end
 function love.update(dt)
     world:update(dt)
 
-    player.body:setAngle(calcAngle())
+    player.body:setAngle(calcAngle(player, target))
 
     -- Time out how far apart our shots can be.
     player.canShootTimer = player.canShootTimer - (1 * dt)
@@ -80,6 +80,8 @@ function love.update(dt)
             table.remove(enemies, i)
             table.remove(objects, tablefind(objects, enemy))
         end
+
+        enemy.body:setAngle(calcAngle(enemy, player))
     end
 end
 
@@ -226,9 +228,9 @@ function scale(img, ratioX, ratioY)
     return c
 end
 
-function calcAngle()
-    return -math.atan2(player.body:getX() - target.body:getX(),
-                       player.body:getY() - target.body:getY())
+function calcAngle(o1, o2)
+    return -math.atan2(o1.body:getX() - o2.body:getX(),
+                       o1.body:getY() - o2.body:getY())
 end
 
 -- https://love2d.org/wiki/Tutorial:PhysicsDrawing
